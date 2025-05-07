@@ -1,0 +1,3 @@
+wechat_pay_busifavor_controllers:
+  resource: '../../Controller/'
+  type: attribute
