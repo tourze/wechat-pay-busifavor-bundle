@@ -4,7 +4,6 @@ namespace WechatPayBusifavorBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use DoctrineEnhanceBundle\Repository\CommonRepositoryAware;
 use WechatPayBusifavorBundle\Entity\Stock;
 use WechatPayBusifavorBundle\Enum\StockStatus;
 
@@ -16,7 +15,6 @@ use WechatPayBusifavorBundle\Enum\StockStatus;
  */
 class StockRepository extends ServiceEntityRepository
 {
-    use CommonRepositoryAware;
 
     public function __construct(ManagerRegistry $registry)
     {

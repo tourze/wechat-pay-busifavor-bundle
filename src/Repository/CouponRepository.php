@@ -4,7 +4,6 @@ namespace WechatPayBusifavorBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use DoctrineEnhanceBundle\Repository\CommonRepositoryAware;
 use WechatPayBusifavorBundle\Entity\Coupon;
 use WechatPayBusifavorBundle\Enum\CouponStatus;
 
@@ -16,7 +15,6 @@ use WechatPayBusifavorBundle\Enum\CouponStatus;
  */
 class CouponRepository extends ServiceEntityRepository
 {
-    use CommonRepositoryAware;
 
     public function __construct(ManagerRegistry $registry)
     {
