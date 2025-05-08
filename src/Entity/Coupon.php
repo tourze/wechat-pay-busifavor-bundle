@@ -7,6 +7,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
+use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
+use Tourze\EasyAdmin\Attribute\Column\ListColumn;
+use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use WechatPayBusifavorBundle\Enum\CouponStatus;
 
 #[ORM\Entity(repositoryClass: \WechatPayBusifavorBundle\Repository\CouponRepository::class)]
