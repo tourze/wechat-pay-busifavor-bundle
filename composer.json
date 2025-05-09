@@ -1,6 +1,6 @@
 {
   "name": "tourze/wechat-pay-busifavor-bundle",
-  "description": "商家券",
+  "description": "微信支付-商家券",
   "type": "symfony-bundle",
   "license": "MIT",
   "require": {
