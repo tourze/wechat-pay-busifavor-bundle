@@ -77,7 +77,7 @@ class ListUserCouponsCommand extends Command
             );
 
             $io->success(sprintf('共显示 %d 条数据', count($result['data'])));
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error(sprintf('查询失败: %s', $e->getMessage()));
 
             return Command::FAILURE;

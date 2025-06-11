@@ -44,7 +44,7 @@ class SyncStockCommand extends Command
             try {
                 $result = $this->busifavorService->getStock($stockId);
                 $io->success(sprintf('商家券批次 %s 同步成功，当前状态: %s', $stockId, $result['status'] ?? 'unknown'));
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $io->error(sprintf('商家券批次 %s 同步失败: %s', $stockId, $e->getMessage()));
 
                 return Command::FAILURE;
@@ -64,7 +64,7 @@ class SyncStockCommand extends Command
                     $result = $this->busifavorService->getStock($stock->getStockId());
                     $io->writeln(sprintf('状态: %s', $result['status'] ?? 'unknown'));
                     ++$successCount;
-                } catch  (\Throwable $e) {
+                } catch (\Throwable $e) {
                     $io->writeln(sprintf('<error>同步失败: %s</error>', $e->getMessage()));
                     ++$failedCount;
                 }

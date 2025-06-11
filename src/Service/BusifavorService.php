@@ -66,7 +66,7 @@ class BusifavorService
             }
 
             return $response;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('创建商家券批次失败: ' . $e->getMessage(), [
                 'data' => $data,
                 'exception' => $e,
@@ -122,7 +122,7 @@ class BusifavorService
             }
 
             return $response;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('查询商家券批次详情失败: ' . $e->getMessage(), [
                 'stockId' => $stockId,
                 'exception' => $e,
@@ -164,7 +164,7 @@ class BusifavorService
             }
 
             return $response;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('核销商家券失败: ' . $e->getMessage(), [
                 'data' => $data,
                 'exception' => $e,
@@ -219,7 +219,7 @@ class BusifavorService
             }
 
             return $response;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('查询用户单张券详情失败: ' . $e->getMessage(), [
                 'couponCode' => $couponCode,
                 'openid' => $openid,
@@ -284,7 +284,7 @@ class BusifavorService
             }
 
             return $response;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('查询用户券列表失败: ' . $e->getMessage(), [
                 'openid' => $openid,
                 'appid' => $appid,
