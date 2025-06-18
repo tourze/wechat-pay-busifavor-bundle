@@ -8,16 +8,12 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use WechatPayBusifavorBundle\Enum\CouponStatus;
 
 #[ORM\Entity(repositoryClass: \WechatPayBusifavorBundle\Repository\CouponRepository::class)]
 #[ORM\Table(name: 'ims_wechat_pay_busifavor_coupon', options: ['comment' => '微信支付商家券表'])]
 class Coupon implements PlainArrayInterface, AdminArrayInterface
 {
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]

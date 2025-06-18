@@ -253,7 +253,6 @@ class StockTest extends TestCase
         $array = $this->stock->toPlainArray();
         
         // 验证结果
-        $this->assertIsArray($array);
         // 检测是否有数组内容
         $this->assertNotEmpty($array);
         
@@ -295,7 +294,6 @@ class StockTest extends TestCase
         $array = $this->stock->toAdminArray();
         
         // 验证结果
-        $this->assertIsArray($array);
         // 检测是否有数组内容
         $this->assertNotEmpty($array);
         

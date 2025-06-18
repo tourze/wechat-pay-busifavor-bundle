@@ -4,9 +4,7 @@ namespace WechatPayBusifavorBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Tourze\BundleDependency\BundleDependencyInterface;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '商家券')]
 class WechatPayBusifavorBundle extends Bundle implements BundleDependencyInterface
 {
     public static function getBundleDependencies(): array
