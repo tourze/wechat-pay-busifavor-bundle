@@ -4,6 +4,7 @@ namespace WechatPayBusifavorBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
@@ -12,7 +13,7 @@ use WechatPayBusifavorBundle\Enum\StockStatus;
 
 #[ORM\Entity(repositoryClass: \WechatPayBusifavorBundle\Repository\StockRepository::class)]
 #[ORM\Table(name: 'ims_wechat_pay_busifavor_stock', options: ['comment' => '微信支付商家券批次表'])]
-class Stock implements PlainArrayInterface, AdminArrayInterface
+class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -338,5 +339,10 @@ class Stock implements PlainArrayInterface, AdminArrayInterface
             'displayPatternInfo' => $this->displayPatternInfo,
             'notifyConfig' => $this->notifyConfig,
         ];
+    }
+
+    public function __toString(): string
+    {
+        return $this->stockName ?: $this->stockId;
     }
 }

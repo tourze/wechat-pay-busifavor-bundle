@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use WechatPayBusifavorBundle\Service\BusifavorService;
 
 #[AsCommand(
-    name: ListUserCouponsCommand::NAME,
+    name: self::NAME,
     description: '查询用户的商家券列表',
 )]
 class ListUserCouponsCommand extends Command

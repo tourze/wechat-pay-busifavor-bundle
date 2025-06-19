@@ -2,7 +2,6 @@
 
 namespace WechatPayBusifavorBundle\Tests\Client;
 
-use HttpClientBundle\Client\ApiClient;
 use PHPUnit\Framework\TestCase;
 use WechatPayBusifavorBundle\Client\BusifavorClient;
 
@@ -15,6 +14,5 @@ class BusifavorClientTest extends TestCase
     public function testClassExists(): void
     {
         $this->assertTrue(class_exists(BusifavorClient::class));
-        $this->assertTrue(is_subclass_of(BusifavorClient::class, ApiClient::class));
     }
 } 

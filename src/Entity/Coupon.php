@@ -4,6 +4,7 @@ namespace WechatPayBusifavorBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
@@ -12,7 +13,7 @@ use WechatPayBusifavorBundle\Enum\CouponStatus;
 
 #[ORM\Entity(repositoryClass: \WechatPayBusifavorBundle\Repository\CouponRepository::class)]
 #[ORM\Table(name: 'ims_wechat_pay_busifavor_coupon', options: ['comment' => '微信支付商家券表'])]
-class Coupon implements PlainArrayInterface, AdminArrayInterface
+class Coupon implements PlainArrayInterface, AdminArrayInterface, Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -196,5 +197,10 @@ class Coupon implements PlainArrayInterface, AdminArrayInterface
         return $this->retrievePlainArray() + [
             'useInfo' => $this->useInfo,
         ];
+    }
+
+    public function __toString(): string
+    {
+        return $this->couponCode . ' - ' . $this->stockId;
     }
 }

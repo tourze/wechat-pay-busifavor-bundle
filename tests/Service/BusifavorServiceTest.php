@@ -118,7 +118,7 @@ class BusifavorServiceTest extends TestCase
             ->method('error')
             ->with(
                 $this->stringContains('创建商家券批次失败'),
-                $this->callback(function ($context) use ($stockData, $exception) {
+                $this->callback(function ($context) use ($stockData) {
                     return isset($context['data']) 
                         && $context['data'] === $stockData
                         && $context['exception'] instanceof \Exception;

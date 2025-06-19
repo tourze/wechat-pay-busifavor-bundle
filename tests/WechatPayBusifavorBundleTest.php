@@ -14,7 +14,6 @@ class WechatPayBusifavorBundleTest extends TestCase
     {
         $dependencies = WechatPayBusifavorBundle::getBundleDependencies();
         
-        $this->assertIsArray($dependencies);
         $this->assertArrayHasKey(DoctrineIndexedBundle::class, $dependencies);
         $this->assertArrayHasKey(HttpClientBundle::class, $dependencies);
         $this->assertArrayHasKey(WechatPayBundle::class, $dependencies);

@@ -89,7 +89,7 @@ class BusifavorService
 
             // 更新数据库中的批次信息
             $stock = $this->stockRepository->findByStockId($stockId);
-            if ($stock && isset($response['stock_id'])) {
+            if ($stock !== null && isset($response['stock_id'])) {
                 if (isset($response['stock_state'])) {
                     $stock->setStatus($response['stock_state']);
                 } else {
@@ -153,7 +153,7 @@ class BusifavorService
 
             // 更新数据库中的券信息
             $coupon = $this->couponRepository->findByCouponCode($couponCode);
-            if ($coupon) {
+            if ($coupon !== null) {
                 $coupon->setStatus(CouponStatus::USED);
                 $coupon->setUsedTime(new \DateTimeImmutable());
                 $coupon->setUseRequestNo($useRequestNo);
@@ -187,7 +187,7 @@ class BusifavorService
 
             // 确保数据库中有此券
             $coupon = $this->couponRepository->findByCouponCode($couponCode);
-            if (!$coupon && isset($response['coupon_code'])) {
+            if ($coupon === null && isset($response['coupon_code'])) {
                 $coupon = new Coupon();
                 $coupon->setCouponCode($response['coupon_code']);
                 $coupon->setStockId($response['stock_id']);
@@ -203,7 +203,7 @@ class BusifavorService
 
                 $this->entityManager->persist($coupon);
                 $this->entityManager->flush();
-            } elseif ($coupon && isset($response['status'])) {
+            } elseif ($coupon !== null && isset($response['status'])) {
                 // 更新状态
                 $coupon->setStatus(CouponStatus::from($response['status']));
 
@@ -252,7 +252,7 @@ class BusifavorService
                     $couponCode = $couponData['coupon_code'];
                     $coupon = $this->couponRepository->findByCouponCode($couponCode);
 
-                    if (!$coupon) {
+                    if ($coupon === null) {
                         $coupon = new Coupon();
                         $coupon->setCouponCode($couponCode);
                         $coupon->setStockId($couponData['stock_id']);
@@ -302,7 +302,7 @@ class BusifavorService
      */
     public function getLocalStocks(?string $status = null): array
     {
-        if ($status) {
+        if ($status !== null) {
             return $this->stockRepository->findStocksByStatus($status);
         }
 
@@ -316,11 +316,11 @@ class BusifavorService
     {
         $criteria = [];
 
-        if ($stockId) {
+        if ($stockId !== null) {
             $criteria['stockId'] = $stockId;
         }
 
-        if ($openid) {
+        if ($openid !== null) {
             $criteria['openid'] = $openid;
         }
 

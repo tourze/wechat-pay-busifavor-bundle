@@ -12,7 +12,7 @@ use WechatPayBusifavorBundle\Repository\StockRepository;
 use WechatPayBusifavorBundle\Service\BusifavorService;
 
 #[AsCommand(
-    name: SyncStockCommand::NAME,
+    name: self::NAME,
     description: '同步微信商家券批次状态',
 )]
 class SyncStockCommand extends Command
@@ -37,7 +37,7 @@ class SyncStockCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $stockId = $input->getArgument('stock-id');
 
-        if ($stockId) {
+        if ($stockId !== null) {
             // 同步指定批次
             $io->note(sprintf('正在同步商家券批次：%s', $stockId));
 
