@@ -91,9 +91,9 @@ class BusifavorService
             $stock = $this->stockRepository->findByStockId($stockId);
             if ($stock !== null && isset($response['stock_id'])) {
                 if (isset($response['stock_state'])) {
-                    $stock->setStatus($response['stock_state']);
-                } else {
-                    $stock->setStatus($response['status'] ?? StockStatus::UNAUDIT->value);
+                    $stock->setStatus(StockStatus::from($response['stock_state']));
+                } elseif (isset($response['status'])) {
+                    $stock->setStatus(StockStatus::from($response['status']));
                 }
                 if (isset($response['stock_name'])) {
                     $stock->setStockName($response['stock_name']);

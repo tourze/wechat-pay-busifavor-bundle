@@ -343,6 +343,6 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
 
     public function __toString(): string
     {
-        return $this->stockName ?: $this->stockId;
+        return $this->stockName ?? $this->stockId;
     }
 }

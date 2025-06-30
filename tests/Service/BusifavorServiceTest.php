@@ -163,19 +163,42 @@ class BusifavorServiceTest extends TestCase
             'display_pattern_info' => [],
         ];
         
-        // 创建模拟服务
-        $mockService = $this->getMockBuilder(BusifavorService::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getStock'])
-            ->getMock();
-            
-        $mockService->expects($this->once())
-            ->method('getStock')
+        // 创建数据库中的Stock实体
+        $stock = new Stock();
+        $stock->setStockId($stockId);
+        $stock->setStockName('旧名称');
+        $stock->setStatus(StockStatus::UNAUDIT);
+        $stock->setAvailableBeginTime(['value' => (new \DateTime())->format('Y-m-d\TH:i:sP')]);
+        $stock->setAvailableEndTime(['value' => (new \DateTime('+1 month'))->format('Y-m-d\TH:i:sP')]);
+        $stock->setMaxCoupons(100);
+        $stock->setMaxCouponsPerUser(10);
+        $stock->setMaxAmount(10000);
+        $stock->setMaxAmountByDay(1000);
+        
+        // 设置Mock行为
+        $this->stockRepository->expects($this->once())
+            ->method('findByStockId')
             ->with($stockId)
+            ->willReturn($stock);
+            
+        $this->client->expects($this->once())
+            ->method('request')
             ->willReturn($apiResponse);
         
+        // 设置期望的更新行为
+        $this->entityManager->expects($this->once())
+            ->method('persist')
+            ->with($this->callback(function ($updatedStock) {
+                return $updatedStock instanceof Stock 
+                    && $updatedStock->getStockName() === '新名称'
+                    && $updatedStock->getStatus() === StockStatus::ONGOING;
+            }));
+            
+        $this->entityManager->expects($this->once())
+            ->method('flush');
+        
         // 执行测试
-        $result = $mockService->getStock($stockId);
+        $result = $this->service->getStock($stockId);
         
         // 验证结果
         $this->assertEquals($apiResponse, $result);
@@ -319,25 +342,14 @@ class BusifavorServiceTest extends TestCase
             'offset' => 0,
         ];
         
-        // 使用模拟服务
-        $mockService = $this->getMockBuilder(BusifavorService::class)
-            ->setConstructorArgs([
-                $this->client,
-                $this->stockRepository,
-                $this->couponRepository,
-                $this->logger,
-                $this->entityManager
-            ])
-            ->onlyMethods(['getUserCoupons'])
-            ->getMock();
-            
-        $mockService->expects($this->once())
-            ->method('getUserCoupons')
-            ->with($openid, $appid, $stockId, $status, $offset, $limit)
+        // 设置Mock行为
+        $this->client->expects($this->once())
+            ->method('request')
+            ->with($this->isInstanceOf(\WechatPayBusifavorBundle\Request\GetUserCouponsRequest::class))
             ->willReturn($apiResponse);
         
         // 执行测试
-        $result = $mockService->getUserCoupons($openid, $appid, $stockId, $status, $offset, $limit);
+        $result = $this->service->getUserCoupons($openid, $appid, $stockId, $status, $offset, $limit);
         
         // 验证结果
         $this->assertEquals($apiResponse, $result);
