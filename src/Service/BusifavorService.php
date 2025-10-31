@@ -2,14 +2,14 @@
 
 namespace WechatPayBusifavorBundle\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Tourze\Symfony\AopDoctrineBundle\Attribute\Transactional;
 use WechatPayBusifavorBundle\Client\BusifavorClient;
+use WechatPayBusifavorBundle\DTO\StockData;
 use WechatPayBusifavorBundle\Entity\Coupon;
 use WechatPayBusifavorBundle\Entity\Stock;
 use WechatPayBusifavorBundle\Enum\CouponStatus;
-use WechatPayBusifavorBundle\Enum\StockStatus;
 use WechatPayBusifavorBundle\Repository\CouponRepository;
 use WechatPayBusifavorBundle\Repository\StockRepository;
 use WechatPayBusifavorBundle\Request\CreateStockRequest;
@@ -17,53 +17,40 @@ use WechatPayBusifavorBundle\Request\GetCouponRequest;
 use WechatPayBusifavorBundle\Request\GetStockRequest;
 use WechatPayBusifavorBundle\Request\GetUserCouponsRequest;
 use WechatPayBusifavorBundle\Request\UseCouponRequest;
+use WechatPayBusifavorBundle\Service\CouponMapper;
+use WechatPayBusifavorBundle\Service\StockMapper;
 
+#[WithMonologChannel(channel: 'wechat_pay_busifavor')]
 class BusifavorService
 {
     public function __construct(
         private readonly BusifavorClient $client,
         private readonly StockRepository $stockRepository,
         private readonly CouponRepository $couponRepository,
+        private readonly StockMapper $stockMapper,
+        private readonly CouponMapper $couponMapper,
         private readonly LoggerInterface $logger,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     /**
      * 创建商家券批次
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     *
+     * 并发控制：不考虑并发，由业务层面保证同一批次不会重复创建
      */
     #[Transactional]
     public function createStock(array $data): array
     {
-        // 组装请求数据
         $request = new CreateStockRequest($data);
 
         try {
-            // 调用微信支付API
             $response = $this->client->request($request);
-
-            // 保存到数据库
-            if (isset($response['stock_id'])) {
-                $stock = new Stock();
-                $stock->setStockId($response['stock_id']);
-                $stock->setStockName($data['stock_name']);
-                $stock->setDescription($data['comment'] ?? null);
-                $stock->setAvailableBeginTime($data['available_begin_time'] ?? []);
-                $stock->setAvailableEndTime($data['available_end_time'] ?? []);
-                $stock->setStockUseRule($data['stock_use_rule'] ?? []);
-                $stock->setCouponUseRule($data['coupon_use_rule'] ?? []);
-                $stock->setCustomEntrance($data['custom_entrance'] ?? []);
-                $stock->setDisplayPatternInfo($data['display_pattern_info'] ?? []);
-                $stock->setNotifyConfig($data['notify_config'] ?? null);
-                $stock->setMaxCoupons($data['stock_use_rule']['max_coupons'] ?? 0);
-                $stock->setMaxCouponsPerUser($data['stock_use_rule']['max_coupons_per_user'] ?? 0);
-                $stock->setMaxAmount($data['stock_use_rule']['max_amount'] ?? 0);
-                $stock->setMaxAmountByDay($data['stock_use_rule']['max_amount_by_day'] ?? 0);
-                $stock->setNoLimit(isset($data['no_limit']) && $data['no_limit']);
-
-                $this->entityManager->persist($stock);
-                $this->entityManager->flush();
-            }
+            assert(is_array($response));
+            /** @var array<string, mixed> $response */
+            $this->saveStockFromResponse($response, $data);
 
             return $response;
         } catch (\Throwable $e) {
@@ -71,13 +58,32 @@ class BusifavorService
                 'data' => $data,
                 'exception' => $e,
             ]);
-
             throw $e;
         }
     }
 
     /**
+     * @param array<string, mixed> $response
+     * @param array<string, mixed> $originalData
+     */
+    private function saveStockFromResponse(array $response, array $originalData): void
+    {
+        if (!isset($response['stock_id'])) {
+            return;
+        }
+
+        $mergedData = array_merge($originalData, $response);
+        $stockData = StockData::fromArray($mergedData);
+        $stock = $this->stockMapper->createFromData($stockData);
+        $this->stockRepository->save($stock);
+    }
+
+    /**
      * 查询商家券批次详情
+     *
+     * @return array<string, mixed>
+     *
+     * 并发控制：不考虑并发，同步操作不会影响数据一致性
      */
     #[Transactional]
     public function getStock(string $stockId): array
@@ -86,40 +92,9 @@ class BusifavorService
 
         try {
             $response = $this->client->request($request);
-
-            // 更新数据库中的批次信息
-            $stock = $this->stockRepository->findByStockId($stockId);
-            if ($stock !== null && isset($response['stock_id'])) {
-                if (isset($response['stock_state'])) {
-                    $stock->setStatus(StockStatus::from($response['stock_state']));
-                } elseif (isset($response['status'])) {
-                    $stock->setStatus(StockStatus::from($response['status']));
-                }
-                if (isset($response['stock_name'])) {
-                    $stock->setStockName($response['stock_name']);
-                }
-                if (isset($response['available_begin_time'])) {
-                    $stock->setAvailableBeginTime(['value' => $response['available_begin_time']]);
-                }
-                if (isset($response['available_end_time'])) {
-                    $stock->setAvailableEndTime(['value' => $response['available_end_time']]);
-                }
-                if (isset($response['stock_use_rule'])) {
-                    $stock->setStockUseRule($response['stock_use_rule']);
-                }
-                if (isset($response['coupon_use_rule'])) {
-                    $stock->setCouponUseRule($response['coupon_use_rule']);
-                }
-                if (isset($response['custom_entrance'])) {
-                    $stock->setCustomEntrance($response['custom_entrance']);
-                }
-                if (isset($response['display_pattern_info'])) {
-                    $stock->setDisplayPatternInfo($response['display_pattern_info']);
-                }
-
-                $this->entityManager->persist($stock);
-                $this->entityManager->flush();
-            }
+            assert(is_array($response));
+            /** @var array<string, mixed> $response */
+            $this->updateStockFromResponse($stockId, $response);
 
             return $response;
         } catch (\Throwable $e) {
@@ -133,7 +108,25 @@ class BusifavorService
     }
 
     /**
+     * 不考虑并发，由上层方法保证事务一致性
+     *
+     * @param array<string, mixed> $response
+     */
+    private function updateStockFromResponse(string $stockId, array $response): void
+    {
+        $stock = $this->stockRepository->findByStockId($stockId);
+        if (null === $stock || !isset($response['stock_id'])) {
+            return;
+        }
+
+        $this->stockMapper->updateFromResponse($stock, $response);
+        $this->stockRepository->save($stock);
+    }
+
+    /**
      * 核销商家券
+     *
+     * @return array<string, mixed>
      */
     #[Transactional]
     public function useCoupon(string $couponCode, string $stockId, string $appid, string $openid, string $useRequestNo): array
@@ -153,16 +146,21 @@ class BusifavorService
 
             // 更新数据库中的券信息
             $coupon = $this->couponRepository->findByCouponCode($couponCode);
-            if ($coupon !== null) {
+            if (null !== $coupon) {
                 $coupon->setStatus(CouponStatus::USED);
                 $coupon->setUsedTime(new \DateTimeImmutable());
                 $coupon->setUseRequestNo($useRequestNo);
-                $coupon->setUseInfo($response);
+                if (is_array($response)) {
+                    /** @var array<string, mixed> $response */
+                    $coupon->setUseInfo($response);
+                }
 
-                $this->entityManager->persist($coupon);
-                $this->entityManager->flush();
+                $this->couponRepository->save($coupon);
             }
 
+            assert(is_array($response));
+
+            /** @var array<string, mixed> $response */
             return $response;
         } catch (\Throwable $e) {
             $this->logger->error('核销商家券失败: ' . $e->getMessage(), [
@@ -176,6 +174,8 @@ class BusifavorService
 
     /**
      * 查询用户单张券详情
+     *
+     * @return array<string, mixed>
      */
     #[Transactional]
     public function getCoupon(string $couponCode, string $openid, string $appid): array
@@ -184,39 +184,9 @@ class BusifavorService
 
         try {
             $response = $this->client->request($request);
-
-            // 确保数据库中有此券
-            $coupon = $this->couponRepository->findByCouponCode($couponCode);
-            if ($coupon === null && isset($response['coupon_code'])) {
-                $coupon = new Coupon();
-                $coupon->setCouponCode($response['coupon_code']);
-                $coupon->setStockId($response['stock_id']);
-                $coupon->setOpenid($openid);
-                $coupon->setStatus(CouponStatus::from($response['status'] ?? CouponStatus::SENDED->value));
-
-                if (isset($response['expire_time'])) {
-                    $timestamp = strtotime($response['expire_time']);
-                    if (false !== $timestamp) {
-                        $coupon->setExpiryTime(new \DateTimeImmutable('@' . $timestamp));
-                    }
-                }
-
-                $this->entityManager->persist($coupon);
-                $this->entityManager->flush();
-            } elseif ($coupon !== null && isset($response['status'])) {
-                // 更新状态
-                $coupon->setStatus(CouponStatus::from($response['status']));
-
-                if (isset($response['use_time'])) {
-                    $timestamp = strtotime($response['use_time']);
-                    if (false !== $timestamp) {
-                        $coupon->setUsedTime(new \DateTimeImmutable('@' . $timestamp));
-                    }
-                }
-
-                $this->entityManager->persist($coupon);
-                $this->entityManager->flush();
-            }
+            assert(is_array($response));
+            /** @var array<string, mixed> $response */
+            $this->syncSingleCouponToDatabase($couponCode, $openid, $response);
 
             return $response;
         } catch (\Throwable $e) {
@@ -232,7 +202,27 @@ class BusifavorService
     }
 
     /**
+     * @param array<string, mixed> $response
+     */
+    private function syncSingleCouponToDatabase(string $couponCode, string $openid, array $response): void
+    {
+        $coupon = $this->couponRepository->findByCouponCode($couponCode);
+
+        if (null === $coupon && isset($response['coupon_code'])) {
+            /** @var array<string, mixed> $response */
+            $coupon = $this->couponMapper->createFromResponse($response, $openid);
+            $this->couponRepository->save($coupon);
+        } elseif (null !== $coupon) {
+            /** @var array<string, mixed> $response */
+            $this->couponMapper->updateFromResponse($coupon, $response);
+            $this->couponRepository->save($coupon);
+        }
+    }
+
+    /**
      * 查询用户券列表
+     *
+     * @return array<string, mixed>
      */
     #[Transactional]
     public function getUserCoupons(string $openid, string $appid, ?string $stockId = null, ?string $status = null, ?int $offset = null, ?int $limit = null): array
@@ -241,47 +231,9 @@ class BusifavorService
 
         try {
             $response = $this->client->request($request);
-
-            // 同步到数据库
-            if (isset($response['data']) && is_array($response['data'])) {
-                foreach ($response['data'] as $couponData) {
-                    if (!isset($couponData['coupon_code']) || !isset($couponData['stock_id'])) {
-                        continue;
-                    }
-
-                    $couponCode = $couponData['coupon_code'];
-                    $coupon = $this->couponRepository->findByCouponCode($couponCode);
-
-                    if ($coupon === null) {
-                        $coupon = new Coupon();
-                        $coupon->setCouponCode($couponCode);
-                        $coupon->setStockId($couponData['stock_id']);
-                        $coupon->setOpenid($openid);
-                    }
-
-                    $coupon->setStatus(CouponStatus::from($couponData['status'] ?? CouponStatus::SENDED->value));
-
-                    if (isset($couponData['expire_time'])) {
-                        $timestamp = strtotime($couponData['expire_time']);
-                        if (false !== $timestamp) {
-                            $coupon->setExpiryTime(new \DateTimeImmutable('@' . $timestamp));
-                        }
-                    }
-
-                    if (isset($couponData['use_time'])) {
-                        $timestamp = strtotime($couponData['use_time']);
-                        if (false !== $timestamp) {
-                            $coupon->setUsedTime(new \DateTimeImmutable('@' . $timestamp));
-                        }
-                    }
-
-                    $this->entityManager->persist($coupon);
-                }
-
-                if (!empty($response['data'])) {
-                    $this->entityManager->flush();
-                }
-            }
+            assert(is_array($response));
+            /** @var array<string, mixed> $response */
+            $this->syncUserCouponsToDatabase($response, $openid);
 
             return $response;
         } catch (\Throwable $e) {
@@ -298,11 +250,40 @@ class BusifavorService
     }
 
     /**
+     * @param array<string, mixed> $response
+     */
+    private function syncUserCouponsToDatabase(array $response, string $openid): void
+    {
+        if (!isset($response['data']) || !is_array($response['data'])) {
+            return;
+        }
+
+        /** @var array<mixed> $data */
+        $data = $response['data'];
+
+        foreach ($data as $couponData) {
+            if (is_array($couponData)) {
+                /** @var array<string, mixed> $couponData */
+                $this->syncCouponToDatabase($couponData, $openid);
+            }
+        }
+
+        if (count($data) > 0) {
+            $this->couponRepository->flush();
+        }
+    }
+
+    /**
      * 获取本地数据库中的商家券批次
+     *
+     * 并发控制：不考虑并发，只读操作不会影响数据一致性
+     */
+    /**
+     * @return array<Stock>
      */
     public function getLocalStocks(?string $status = null): array
     {
-        if ($status !== null) {
+        if (null !== $status) {
             return $this->stockRepository->findStocksByStatus($status);
         }
 
@@ -312,18 +293,44 @@ class BusifavorService
     /**
      * 获取本地数据库中的商家券
      */
+    /**
+     * @return array<Coupon>
+     */
     public function getLocalCoupons(?string $stockId = null, ?string $openid = null): array
     {
         $criteria = [];
 
-        if ($stockId !== null) {
+        if (null !== $stockId) {
             $criteria['stockId'] = $stockId;
         }
 
-        if ($openid !== null) {
+        if (null !== $openid) {
             $criteria['openid'] = $openid;
         }
 
         return $this->couponRepository->findBy($criteria, ['createdTime' => 'DESC']);
+    }
+
+    /**
+     * @param array<string, mixed> $couponData
+     */
+    private function syncCouponToDatabase(array $couponData, string $openid): void
+    {
+        if (!isset($couponData['coupon_code']) || !isset($couponData['stock_id'])) {
+            return;
+        }
+
+        $couponCode = isset($couponData['coupon_code']) && is_string($couponData['coupon_code']) ? $couponData['coupon_code'] : '';
+        $coupon = $this->couponRepository->findByCouponCode($couponCode);
+
+        if (null === $coupon) {
+            /** @var array<string, mixed> $couponData */
+            $coupon = $this->couponMapper->createFromResponse($couponData, $openid);
+        } else {
+            /** @var array<string, mixed> $couponData */
+            $this->couponMapper->updateFromResponse($coupon, $couponData);
+        }
+
+        $this->couponRepository->save($coupon, false);
     }
 }

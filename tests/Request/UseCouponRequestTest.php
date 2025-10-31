@@ -1,11 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Request;
 
-use PHPUnit\Framework\TestCase;
+use HttpClientBundle\Tests\Request\RequestTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use WechatPayBusifavorBundle\Request\UseCouponRequest;
 
-class UseCouponRequestTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(UseCouponRequest::class)]
+final class UseCouponRequestTest extends RequestTestCase
 {
     public function testGetRequestPath(): void
     {
@@ -47,7 +54,7 @@ class UseCouponRequestTest extends TestCase
     {
         $request = new UseCouponRequest([]);
         $options = $request->getRequestOptions();
-        
+
         $this->assertIsArray($options);
         $this->assertArrayHasKey('json', $options);
         $this->assertEmpty($options['json']);
@@ -71,6 +78,8 @@ class UseCouponRequestTest extends TestCase
 
         $request = new UseCouponRequest($requestData);
         $options = $request->getRequestOptions();
+        $this->assertIsArray($options);
+        $this->assertArrayHasKey('json', $options);
 
         $this->assertEquals($requestData, $options['json']);
     }

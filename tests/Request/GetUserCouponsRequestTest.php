@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Request;
 
-use PHPUnit\Framework\TestCase;
+use HttpClientBundle\Tests\Request\RequestTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use WechatPayBusifavorBundle\Request\GetUserCouponsRequest;
 
-class GetUserCouponsRequestTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(GetUserCouponsRequest::class)]
+final class GetUserCouponsRequestTest extends RequestTestCase
 {
     private string $openid = 'openid123';
+
     private string $appid = 'appid123';
 
     public function testGetRequestPath(): void
@@ -27,12 +35,14 @@ class GetUserCouponsRequestTest extends TestCase
     {
         $request = new GetUserCouponsRequest($this->openid, $this->appid);
         $options = $request->getRequestOptions();
-        
+
         $this->assertIsArray($options);
         $this->assertArrayHasKey('query', $options);
-        $this->assertArrayHasKey('appid', $options['query']);
-        $this->assertEquals($this->appid, $options['query']['appid']);
-        $this->assertCount(1, $options['query']);
+        $query = $options['query'];
+        $this->assertIsArray($query);
+        $this->assertArrayHasKey('appid', $query);
+        $this->assertEquals($this->appid, $query['appid']);
+        $this->assertCount(1, $query);
     }
 
     public function testGetRequestOptionsWithAllParameters(): void
@@ -41,7 +51,7 @@ class GetUserCouponsRequestTest extends TestCase
         $status = 'SENDED';
         $offset = 10;
         $limit = 20;
-        
+
         $request = new GetUserCouponsRequest(
             $this->openid,
             $this->appid,
@@ -50,13 +60,14 @@ class GetUserCouponsRequestTest extends TestCase
             $offset,
             $limit
         );
-        
+
         $options = $request->getRequestOptions();
-        
+
         $this->assertIsArray($options);
         $this->assertArrayHasKey('query', $options);
-        
+
         $query = $options['query'];
+        $this->assertIsArray($query);
         $this->assertEquals($this->appid, $query['appid']);
         $this->assertEquals($stockId, $query['stock_id']);
         $this->assertEquals($status, $query['status']);
@@ -69,17 +80,20 @@ class GetUserCouponsRequestTest extends TestCase
     {
         $stockId = 'STOCK456';
         $status = 'USED';
-        
+
         $request = new GetUserCouponsRequest(
             $this->openid,
             $this->appid,
             $stockId,
             $status
         );
-        
+
         $options = $request->getRequestOptions();
+        $this->assertIsArray($options);
+        $this->assertArrayHasKey('query', $options);
         $query = $options['query'];
-        
+        $this->assertIsArray($query);
+
         $this->assertEquals($this->appid, $query['appid']);
         $this->assertEquals($stockId, $query['stock_id']);
         $this->assertEquals($status, $query['status']);
@@ -104,10 +118,13 @@ class GetUserCouponsRequestTest extends TestCase
             null,
             null
         );
-        
+
         $options = $request->getRequestOptions();
+        $this->assertIsArray($options);
+        $this->assertArrayHasKey('query', $options);
         $query = $options['query'];
-        
+        $this->assertIsArray($query);
+
         $this->assertArrayHasKey('appid', $query);
         $this->assertArrayNotHasKey('stock_id', $query);
         $this->assertArrayNotHasKey('status', $query);

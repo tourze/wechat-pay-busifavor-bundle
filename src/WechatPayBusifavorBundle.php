@@ -2,17 +2,22 @@
 
 namespace WechatPayBusifavorBundle;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use HttpClientBundle\HttpClientBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Tourze\BundleDependency\BundleDependencyInterface;
+use Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle;
+use WechatPayBundle\WechatPayBundle;
 
 class WechatPayBusifavorBundle extends Bundle implements BundleDependencyInterface
 {
     public static function getBundleDependencies(): array
     {
         return [
-            \Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle::class => ['all' => true],
-            \HttpClientBundle\HttpClientBundle::class => ['all' => true],
-            \WechatPayBundle\WechatPayBundle::class => ['all' => true],
+            DoctrineBundle::class => ['all' => true],
+            DoctrineIndexedBundle::class => ['all' => true],
+            HttpClientBundle::class => ['all' => true],
+            WechatPayBundle::class => ['all' => true],
         ];
     }
 }

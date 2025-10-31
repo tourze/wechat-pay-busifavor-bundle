@@ -1,25 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests;
 
-use HttpClientBundle\HttpClientBundle;
-use PHPUnit\Framework\TestCase;
-use Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle;
-use WechatPayBundle\WechatPayBundle;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractBundleTestCase;
 use WechatPayBusifavorBundle\WechatPayBusifavorBundle;
 
-class WechatPayBusifavorBundleTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(WechatPayBusifavorBundle::class)] // @phpstan-ignore-line symplify.forbiddenExtendOfNonAbstractClass
+#[RunTestsInSeparateProcesses]
+final class WechatPayBusifavorBundleTest extends AbstractBundleTestCase
 {
-    public function testGetBundleDependencies(): void
-    {
-        $dependencies = WechatPayBusifavorBundle::getBundleDependencies();
-        
-        $this->assertArrayHasKey(DoctrineIndexedBundle::class, $dependencies);
-        $this->assertArrayHasKey(HttpClientBundle::class, $dependencies);
-        $this->assertArrayHasKey(WechatPayBundle::class, $dependencies);
-        
-        $this->assertEquals(['all' => true], $dependencies[DoctrineIndexedBundle::class]);
-        $this->assertEquals(['all' => true], $dependencies[HttpClientBundle::class]);
-        $this->assertEquals(['all' => true], $dependencies[WechatPayBundle::class]);
-    }
-} 
+}

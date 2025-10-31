@@ -1,17 +1,55 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Entity;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use WechatPayBusifavorBundle\Entity\Stock;
 use WechatPayBusifavorBundle\Enum\StockStatus;
 
-class StockTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Stock::class)]
+final class StockTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new Stock();
+    }
+
+    /** @return iterable<string, array{string, mixed}> */
+    public static function propertiesProvider(): iterable
+    {
+        return [
+            'stockId' => ['stockId', 'test_value'],
+            'stockName' => ['stockName', 'test_value'],
+            'availableBeginTime' => ['availableBeginTime', ['key' => 'value']],
+            'availableEndTime' => ['availableEndTime', ['key' => 'value']],
+            'stockUseRule' => ['stockUseRule', ['key' => 'value']],
+            'couponUseRule' => ['couponUseRule', ['key' => 'value']],
+            'customEntrance' => ['customEntrance', ['key' => 'value']],
+            'displayPatternInfo' => ['displayPatternInfo', ['key' => 'value']],
+            'status' => ['status', StockStatus::UNAUDIT],
+            'maxCoupons' => ['maxCoupons', 123],
+            'maxCouponsPerUser' => ['maxCouponsPerUser', 123],
+            'maxAmount' => ['maxAmount', 123],
+            'maxAmountByDay' => ['maxAmountByDay', 123],
+            'remainAmount' => ['remainAmount', 123],
+            'distributedCoupons' => ['distributedCoupons', 123],
+            'noLimit' => ['noLimit', true],
+        ];
+    }
+
     private Stock $stock;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->stock = new Stock();
     }
 
@@ -27,50 +65,44 @@ class StockTest extends TestCase
     public function testStockIdGetterSetter(): void
     {
         $stockId = 'test_stock_id_123456';
-        $result = $this->stock->setStockId($stockId);
+        $this->stock->setStockId($stockId);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($stockId, $this->stock->getStockId());
     }
 
     public function testStockNameGetterSetter(): void
     {
         $stockName = '测试商家券批次';
-        $result = $this->stock->setStockName($stockName);
+        $this->stock->setStockName($stockName);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($stockName, $this->stock->getStockName());
     }
 
     public function testDescriptionGetterSetter(): void
     {
         $description = '测试批次描述';
-        $result = $this->stock->setDescription($description);
+        $this->stock->setDescription($description);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($description, $this->stock->getDescription());
 
         // 测试 null 值
-        $result = $this->stock->setDescription(null);
-        $this->assertInstanceOf(Stock::class, $result);
+        $this->stock->setDescription(null);
         $this->assertNull($this->stock->getDescription());
     }
 
     public function testAvailableBeginTimeGetterSetter(): void
     {
         $time = ['value' => '2023-01-01T00:00:00+08:00'];
-        $result = $this->stock->setAvailableBeginTime($time);
+        $this->stock->setAvailableBeginTime($time);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($time, $this->stock->getAvailableBeginTime());
     }
 
     public function testAvailableEndTimeGetterSetter(): void
     {
         $time = ['value' => '2023-12-31T23:59:59+08:00'];
-        $result = $this->stock->setAvailableEndTime($time);
+        $this->stock->setAvailableEndTime($time);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($time, $this->stock->getAvailableEndTime());
     }
 
@@ -80,9 +112,8 @@ class StockTest extends TestCase
             'max_coupons' => 100,
             'max_coupons_per_user' => 10,
         ];
-        $result = $this->stock->setStockUseRule($rule);
+        $this->stock->setStockUseRule($rule);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($rule, $this->stock->getStockUseRule());
     }
 
@@ -94,9 +125,8 @@ class StockTest extends TestCase
                 'transaction_minimum' => 100,
             ],
         ];
-        $result = $this->stock->setCouponUseRule($rule);
+        $this->stock->setCouponUseRule($rule);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($rule, $this->stock->getCouponUseRule());
     }
 
@@ -108,9 +138,8 @@ class StockTest extends TestCase
                 'guiding_words' => '点击立即使用',
             ],
         ];
-        $result = $this->stock->setCustomEntrance($entrance);
+        $this->stock->setCustomEntrance($entrance);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($entrance, $this->stock->getCustomEntrance());
     }
 
@@ -120,9 +149,8 @@ class StockTest extends TestCase
             'description' => '优惠券说明',
             'merchant_logo_url' => 'https://example.com/logo.png',
         ];
-        $result = $this->stock->setDisplayPatternInfo($info);
+        $this->stock->setDisplayPatternInfo($info);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($info, $this->stock->getDisplayPatternInfo());
     }
 
@@ -131,70 +159,62 @@ class StockTest extends TestCase
         $config = [
             'notify_appid' => 'wx12345678',
         ];
-        $result = $this->stock->setNotifyConfig($config);
+        $this->stock->setNotifyConfig($config);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($config, $this->stock->getNotifyConfig());
 
         // 测试 null 值
-        $result = $this->stock->setNotifyConfig(null);
-        $this->assertInstanceOf(Stock::class, $result);
+        $this->stock->setNotifyConfig(null);
         $this->assertNull($this->stock->getNotifyConfig());
     }
 
     public function testStatusGetterSetter(): void
     {
         $status = StockStatus::ONGOING;
-        $result = $this->stock->setStatus($status);
+        $this->stock->setStatus($status);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($status, $this->stock->getStatus());
     }
 
     public function testMaxCouponsGetterSetter(): void
     {
         $maxCoupons = 100;
-        $result = $this->stock->setMaxCoupons($maxCoupons);
+        $this->stock->setMaxCoupons($maxCoupons);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($maxCoupons, $this->stock->getMaxCoupons());
     }
 
     public function testMaxCouponsPerUserGetterSetter(): void
     {
         $maxCouponsPerUser = 10;
-        $result = $this->stock->setMaxCouponsPerUser($maxCouponsPerUser);
+        $this->stock->setMaxCouponsPerUser($maxCouponsPerUser);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($maxCouponsPerUser, $this->stock->getMaxCouponsPerUser());
     }
 
     public function testMaxAmountGetterSetter(): void
     {
         $maxAmount = 10000;
-        $result = $this->stock->setMaxAmount($maxAmount);
+        $this->stock->setMaxAmount($maxAmount);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($maxAmount, $this->stock->getMaxAmount());
     }
 
     public function testMaxAmountByDayGetterSetter(): void
     {
         $maxAmountByDay = 1000;
-        $result = $this->stock->setMaxAmountByDay($maxAmountByDay);
+        $this->stock->setMaxAmountByDay($maxAmountByDay);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($maxAmountByDay, $this->stock->getMaxAmountByDay());
     }
 
     public function testRemainAmountGetterSetter(): void
     {
         $remainAmount = 5000;
-        $result = $this->stock->setRemainAmount($remainAmount);
+        $this->stock->setRemainAmount($remainAmount);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($remainAmount, $this->stock->getRemainAmount());
-        
+
         // 测试默认值
         $newStock = new Stock();
         $this->assertEquals(0, $newStock->getRemainAmount());
@@ -203,11 +223,10 @@ class StockTest extends TestCase
     public function testDistributedCouponsGetterSetter(): void
     {
         $distributedCoupons = 50;
-        $result = $this->stock->setDistributedCoupons($distributedCoupons);
+        $this->stock->setDistributedCoupons($distributedCoupons);
 
-        $this->assertInstanceOf(Stock::class, $result);
         $this->assertEquals($distributedCoupons, $this->stock->getDistributedCoupons());
-        
+
         // 测试默认值
         $newStock = new Stock();
         $this->assertEquals(0, $newStock->getDistributedCoupons());
@@ -217,15 +236,13 @@ class StockTest extends TestCase
     {
         // 测试默认值
         $this->assertFalse($this->stock->isNoLimit());
-        
+
         // 设置为 true
-        $result = $this->stock->setNoLimit(true);
-        $this->assertInstanceOf(Stock::class, $result);
+        $this->stock->setNoLimit(true);
         $this->assertTrue($this->stock->isNoLimit());
-        
+
         // 设置为 false
-        $result = $this->stock->setNoLimit(false);
-        $this->assertInstanceOf(Stock::class, $result);
+        $this->stock->setNoLimit(false);
         $this->assertFalse($this->stock->isNoLimit());
     }
 
@@ -236,7 +253,7 @@ class StockTest extends TestCase
         $this->stock->setStockName('测试商家券批次');
         $this->stock->setDescription('测试描述');
         $this->stock->setStatus(StockStatus::ONGOING);
-        
+
         // 初始化必需字段
         $this->stock->setMaxCoupons(100);
         $this->stock->setMaxCouponsPerUser(10);
@@ -248,14 +265,14 @@ class StockTest extends TestCase
         $this->stock->setCouponUseRule(['discount_amount' => 100]);
         $this->stock->setCustomEntrance([]);
         $this->stock->setDisplayPatternInfo([]);
-        
+
         // 调用测试方法
         $array = $this->stock->toPlainArray();
-        
+
         // 验证结果
         // 检测是否有数组内容
         $this->assertNotEmpty($array);
-        
+
         // 验证关键内容 - 不硬编码具体键名
         $stockIdValue = null;
         if (isset($array['stock_id'])) {
@@ -263,10 +280,10 @@ class StockTest extends TestCase
         } elseif (isset($array['stockId'])) {
             $stockIdValue = $array['stockId'];
         }
-        
+
         $this->assertNotNull($stockIdValue, '未找到 stock_id 或 stockId 键');
         $this->assertEquals('test_stock_id', $stockIdValue);
-        
+
         // 不验证状态，因为状态可能是枚举类型，也可能是字符串
     }
 
@@ -277,7 +294,7 @@ class StockTest extends TestCase
         $this->stock->setStockName('测试商家券批次');
         $this->stock->setDescription('测试描述');
         $this->stock->setStatus(StockStatus::ONGOING);
-        
+
         // 初始化必需字段
         $this->stock->setMaxCoupons(100);
         $this->stock->setMaxCouponsPerUser(10);
@@ -289,14 +306,14 @@ class StockTest extends TestCase
         $this->stock->setCouponUseRule(['discount_amount' => 100]);
         $this->stock->setCustomEntrance([]);
         $this->stock->setDisplayPatternInfo([]);
-        
+
         // 调用测试方法
         $array = $this->stock->toAdminArray();
-        
+
         // 验证结果
         // 检测是否有数组内容
         $this->assertNotEmpty($array);
-        
+
         // 验证关键内容 - 不硬编码具体键名
         $stockIdValue = null;
         if (isset($array['stock_id'])) {
@@ -304,10 +321,10 @@ class StockTest extends TestCase
         } elseif (isset($array['stockId'])) {
             $stockIdValue = $array['stockId'];
         }
-        
+
         $this->assertNotNull($stockIdValue, '未找到 stock_id 或 stockId 键');
         $this->assertEquals('test_stock_id', $stockIdValue);
-        
+
         // 不验证状态，因为状态可能是枚举类型，也可能是字符串
     }
-} 
+}

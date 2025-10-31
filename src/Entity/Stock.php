@@ -4,82 +4,144 @@ namespace WechatPayBusifavorBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Stringable;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\PlainArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use WechatPayBusifavorBundle\Enum\StockStatus;
+use WechatPayBusifavorBundle\Repository\StockRepository;
 
-#[ORM\Entity(repositoryClass: \WechatPayBusifavorBundle\Repository\StockRepository::class)]
+/**
+ * @implements PlainArrayInterface<string, mixed>
+ * @implements AdminArrayInterface<string, mixed>
+ */
+#[ORM\Entity(repositoryClass: StockRepository::class)]
 #[ORM\Table(name: 'ims_wechat_pay_busifavor_stock', options: ['comment' => '微信支付商家券批次表'])]
-class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
+class Stock implements PlainArrayInterface, AdminArrayInterface, \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    private int $id = 0;
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
-    use TimestampableAware;
 
     #[ORM\Column(type: Types::STRING, length: 64, unique: true, options: ['comment' => '商家券批次ID'])]
     #[IndexColumn]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 64)]
     private string $stockId;
 
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '商家券批次名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 64)]
     private string $stockName;
 
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true, options: ['comment' => '批次描述'])]
+    #[Assert\Length(max: 128)]
     private ?string $description = null;
 
+    /**
+     * @var array<string, mixed>
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '可用开始时间'])]
+    #[Assert\Type(type: 'array')]
     private array $availableBeginTime = [];
 
+    /**
+     * @var array<string, mixed>
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '可用结束时间'])]
+    #[Assert\Type(type: 'array')]
     private array $availableEndTime = [];
 
+    /**
+     * @var array{max_coupons?: int, max_coupons_per_user?: int, max_amount?: int, max_amount_by_day?: int, prevent_api_abuse?: bool, ...}
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '批次使用规则'])]
-    private array $stockUseRule = [];
+    #[Assert\Type(type: 'array')]
+    private array $stockUseRule = [
+        'max_coupons_per_user' => 0,
+        'max_amount' => 0,
+        'prevent_api_abuse' => false,
+    ];
 
+    /**
+     * @var array{available_merchants?: array<string>, use_limit?: bool, coupon_background?: string, normal_coupon_information?: array<string, mixed>, discount_amount?: int, ...}
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '券使用规则'])]
-    private array $couponUseRule = [];
+    #[Assert\Type(type: 'array')]
+    private array $couponUseRule = [
+        'available_merchants' => [],
+        'use_limit' => false,
+        'coupon_background' => '',
+    ];
 
+    /**
+     * @var array{mini_programs_info?: array<string, mixed>|null, ...}
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '自定义入口'])]
-    private array $customEntrance = [];
+    #[Assert\Type(type: 'array')]
+    private array $customEntrance = [
+        'mini_programs_info' => null,
+    ];
 
+    /**
+     * @var array{description?: string, logo_url?: string, background_color?: string, ...}
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '展示样式信息'])]
-    private array $displayPatternInfo = [];
+    #[Assert\Type(type: 'array')]
+    private array $displayPatternInfo = [
+        'description' => '',
+        'logo_url' => '',
+        'background_color' => '',
+    ];
 
+    /**
+     * @var array{notify_url?: string}|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '事件通知配置'])]
+    #[Assert\Type(type: 'array')]
     private ?array $notifyConfig = null;
 
     #[ORM\Column(type: Types::STRING, length: 32, options: ['comment' => '批次状态'], enumType: StockStatus::class)]
     #[IndexColumn]
+    #[Assert\NotNull]
+    #[Assert\Choice(callback: [StockStatus::class, 'cases'])]
     private StockStatus $status = StockStatus::UNAUDIT;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '最大发放数量'])]
+    #[Assert\PositiveOrZero]
     private int $maxCoupons;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '每个用户最大可领取数量'])]
+    #[Assert\PositiveOrZero]
     private int $maxCouponsPerUser;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '最大发放金额'])]
+    #[Assert\PositiveOrZero]
     private int $maxAmount;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '单日最大发放金额'])]
+    #[Assert\PositiveOrZero]
     private int $maxAmountByDay;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '剩余可用金额'])]
+    #[Assert\PositiveOrZero]
     private int $remainAmount = 0;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '已发放券数量'])]
+    #[Assert\PositiveOrZero]
     private int $distributedCoupons = 0;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否无限制'])]
+    #[Assert\Type(type: 'bool')]
     private bool $noLimit = false;
 
     public function getStockId(): string
@@ -87,11 +149,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->stockId;
     }
 
-    public function setStockId(string $stockId): self
+    public function setStockId(string $stockId): void
     {
         $this->stockId = $stockId;
-
-        return $this;
     }
 
     public function getStockName(): string
@@ -99,11 +159,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->stockName;
     }
 
-    public function setStockName(string $stockName): self
+    public function setStockName(string $stockName): void
     {
         $this->stockName = $stockName;
-
-        return $this;
     }
 
     public function getDescription(): ?string
@@ -111,95 +169,93 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getAvailableBeginTime(): array
     {
         return $this->availableBeginTime;
     }
 
-    public function setAvailableBeginTime(array $availableBeginTime): self
+    /** @param array<string, mixed> $availableBeginTime */
+    public function setAvailableBeginTime(array $availableBeginTime): void
     {
         $this->availableBeginTime = $availableBeginTime;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getAvailableEndTime(): array
     {
         return $this->availableEndTime;
     }
 
-    public function setAvailableEndTime(array $availableEndTime): self
+    /** @param array<string, mixed> $availableEndTime */
+    public function setAvailableEndTime(array $availableEndTime): void
     {
         $this->availableEndTime = $availableEndTime;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getStockUseRule(): array
     {
         return $this->stockUseRule;
     }
 
-    public function setStockUseRule(array $stockUseRule): self
+    /** @param array{max_coupons?: int, max_coupons_per_user?: int, max_amount?: int, max_amount_by_day?: int, prevent_api_abuse?: bool, ...} $stockUseRule */
+    public function setStockUseRule(array $stockUseRule): void
     {
         $this->stockUseRule = $stockUseRule;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getCouponUseRule(): array
     {
         return $this->couponUseRule;
     }
 
-    public function setCouponUseRule(array $couponUseRule): self
+    /** @param array{available_merchants?: array<string>, use_limit?: bool, coupon_background?: string, normal_coupon_information?: array<string, mixed>, discount_amount?: int, ...} $couponUseRule */
+    public function setCouponUseRule(array $couponUseRule): void
     {
         $this->couponUseRule = $couponUseRule;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getCustomEntrance(): array
     {
         return $this->customEntrance;
     }
 
-    public function setCustomEntrance(array $customEntrance): self
+    /** @param array{mini_programs_info?: array<string, mixed>|null, ...} $customEntrance */
+    public function setCustomEntrance(array $customEntrance): void
     {
         $this->customEntrance = $customEntrance;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getDisplayPatternInfo(): array
     {
         return $this->displayPatternInfo;
     }
 
-    public function setDisplayPatternInfo(array $displayPatternInfo): self
+    /** @param array{description?: string, logo_url?: string, background_color?: string, ...} $displayPatternInfo */
+    public function setDisplayPatternInfo(array $displayPatternInfo): void
     {
         $this->displayPatternInfo = $displayPatternInfo;
-
-        return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getNotifyConfig(): ?array
     {
         return $this->notifyConfig;
     }
 
-    public function setNotifyConfig(?array $notifyConfig): self
+    /** @param array{notify_url?: string}|null $notifyConfig */
+    public function setNotifyConfig(?array $notifyConfig): void
     {
         $this->notifyConfig = $notifyConfig;
-
-        return $this;
     }
 
     public function getStatus(): StockStatus
@@ -207,11 +263,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->status;
     }
 
-    public function setStatus(StockStatus $status): self
+    public function setStatus(StockStatus $status): void
     {
         $this->status = $status;
-
-        return $this;
     }
 
     public function getMaxCoupons(): int
@@ -219,11 +273,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->maxCoupons;
     }
 
-    public function setMaxCoupons(int $maxCoupons): self
+    public function setMaxCoupons(int $maxCoupons): void
     {
         $this->maxCoupons = $maxCoupons;
-
-        return $this;
     }
 
     public function getMaxCouponsPerUser(): int
@@ -231,11 +283,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->maxCouponsPerUser;
     }
 
-    public function setMaxCouponsPerUser(int $maxCouponsPerUser): self
+    public function setMaxCouponsPerUser(int $maxCouponsPerUser): void
     {
         $this->maxCouponsPerUser = $maxCouponsPerUser;
-
-        return $this;
     }
 
     public function getMaxAmount(): int
@@ -243,11 +293,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->maxAmount;
     }
 
-    public function setMaxAmount(int $maxAmount): self
+    public function setMaxAmount(int $maxAmount): void
     {
         $this->maxAmount = $maxAmount;
-
-        return $this;
     }
 
     public function getMaxAmountByDay(): int
@@ -255,11 +303,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->maxAmountByDay;
     }
 
-    public function setMaxAmountByDay(int $maxAmountByDay): self
+    public function setMaxAmountByDay(int $maxAmountByDay): void
     {
         $this->maxAmountByDay = $maxAmountByDay;
-
-        return $this;
     }
 
     public function getRemainAmount(): int
@@ -267,11 +313,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->remainAmount;
     }
 
-    public function setRemainAmount(int $remainAmount): self
+    public function setRemainAmount(int $remainAmount): void
     {
         $this->remainAmount = $remainAmount;
-
-        return $this;
     }
 
     public function getDistributedCoupons(): int
@@ -279,11 +323,9 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->distributedCoupons;
     }
 
-    public function setDistributedCoupons(int $distributedCoupons): self
+    public function setDistributedCoupons(int $distributedCoupons): void
     {
         $this->distributedCoupons = $distributedCoupons;
-
-        return $this;
     }
 
     public function isNoLimit(): bool
@@ -291,18 +333,19 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         return $this->noLimit;
     }
 
-    public function setNoLimit(bool $noLimit): self
+    public function setNoLimit(bool $noLimit): void
     {
         $this->noLimit = $noLimit;
-
-        return $this;
     }
 
+    /** @return array<string, mixed> */
     public function toPlainArray(): array
     {
         return $this->retrievePlainArray();
     }
 
+    /** @return array<string, mixed> */
+    /** @return array<string, mixed> */
     public function retrievePlainArray(): array
     {
         return [
@@ -323,11 +366,14 @@ class Stock implements PlainArrayInterface, AdminArrayInterface, Stringable
         ];
     }
 
+    /** @return array<string, mixed> */
     public function toAdminArray(): array
     {
         return $this->retrieveAdminArray();
     }
 
+    /** @return array<string, mixed> */
+    /** @return array<string, mixed> */
     public function retrieveAdminArray(): array
     {
         return $this->retrievePlainArray() + [

@@ -6,11 +6,10 @@ use HttpClientBundle\Request\RequestInterface;
 
 class CreateStockRequest implements RequestInterface
 {
-    private array $requestData;
-
-    public function __construct(array $requestData)
-    {
-        $this->requestData = $requestData;
+    public function __construct(
+        /** @var array<string, mixed> $requestData */
+        private readonly array $requestData,
+    ) {
     }
 
     public function getRequestPath(): string

@@ -1,17 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Request;
 
-use PHPUnit\Framework\TestCase;
+use HttpClientBundle\Tests\Request\RequestTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use WechatPayBusifavorBundle\Request\GetStockRequest;
 
-class GetStockRequestTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(GetStockRequest::class)]
+final class GetStockRequestTest extends RequestTestCase
 {
     private string $stockId = 'STOCK123';
+
     private GetStockRequest $request;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->request = new GetStockRequest($this->stockId);
     }
 
@@ -42,7 +52,7 @@ class GetStockRequestTest extends TestCase
     {
         $stockId = 'TESTSTOCK456';
         $request = new GetStockRequest($stockId);
-        
+
         $expectedPath = 'v3/marketing/busifavor/stocks/' . $stockId;
         $this->assertEquals($expectedPath, $request->getRequestPath());
     }

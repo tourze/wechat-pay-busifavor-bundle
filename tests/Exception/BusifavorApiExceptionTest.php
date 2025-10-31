@@ -1,11 +1,18 @@
 <?php
 
-namespace WechatPayBusifavorBundle\Tests\Unit\Exception;
+declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+namespace WechatPayBusifavorBundle\Tests\Exception;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 use WechatPayBusifavorBundle\Exception\BusifavorApiException;
 
-class BusifavorApiExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(BusifavorApiException::class)]
+final class BusifavorApiExceptionTest extends AbstractExceptionTestCase
 {
     public function testExceptionIsThrowable(): void
     {

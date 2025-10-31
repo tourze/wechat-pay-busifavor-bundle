@@ -1,19 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Request;
 
-use PHPUnit\Framework\TestCase;
+use HttpClientBundle\Tests\Request\RequestTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use WechatPayBusifavorBundle\Request\GetCouponRequest;
 
-class GetCouponRequestTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(GetCouponRequest::class)]
+final class GetCouponRequestTest extends RequestTestCase
 {
     private string $couponCode = 'COUPON123';
+
     private string $openid = 'openid123';
+
     private string $appid = 'appid123';
+
     private GetCouponRequest $request;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->request = new GetCouponRequest($this->couponCode, $this->openid, $this->appid);
     }
 
@@ -31,11 +43,13 @@ class GetCouponRequestTest extends TestCase
     public function testGetRequestOptions(): void
     {
         $options = $this->request->getRequestOptions();
-        
+
         $this->assertIsArray($options);
         $this->assertArrayHasKey('query', $options);
-        $this->assertArrayHasKey('appid', $options['query']);
-        $this->assertEquals($this->appid, $options['query']['appid']);
+        $query = $options['query'];
+        $this->assertIsArray($query);
+        $this->assertArrayHasKey('appid', $query);
+        $this->assertEquals($this->appid, $query['appid']);
     }
 
     public function testImplementsRequestInterface(): void
@@ -48,13 +62,17 @@ class GetCouponRequestTest extends TestCase
         $couponCode = 'TESTCOUPON456';
         $openid = 'testopenid456';
         $appid = 'testappid456';
-        
+
         $request = new GetCouponRequest($couponCode, $openid, $appid);
-        
+
         $expectedPath = 'v3/marketing/busifavor/users/' . $openid . '/coupons/' . $couponCode;
         $this->assertEquals($expectedPath, $request->getRequestPath());
-        
+
         $options = $request->getRequestOptions();
-        $this->assertEquals($appid, $options['query']['appid']);
+        $this->assertIsArray($options);
+        $this->assertArrayHasKey('query', $options);
+        $query = $options['query'];
+        $this->assertIsArray($query);
+        $this->assertEquals($appid, $query['appid']);
     }
 }

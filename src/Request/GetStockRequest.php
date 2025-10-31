@@ -6,11 +6,9 @@ use HttpClientBundle\Request\RequestInterface;
 
 class GetStockRequest implements RequestInterface
 {
-    private string $stockId;
-
-    public function __construct(string $stockId)
-    {
-        $this->stockId = $stockId;
+    public function __construct(
+        private readonly string $stockId,
+    ) {
     }
 
     public function getRequestPath(): string

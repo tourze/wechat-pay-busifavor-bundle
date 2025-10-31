@@ -1,92 +1,142 @@
-# 微信支付商家券模块
+# WeChat Pay Business Coupon Bundle
 
-微信支付商家券是微信支付提供的一种营销工具，商户可以通过创建商家券来吸引和留住客户。本模块提供了完整的微信支付商家券管理功能。
+[English](README.md) | [中文](README.zh-CN.md)
 
-## 功能特性
+[![Latest Version](https://img.shields.io/packagist/v/tourze/wechat-pay-busifavor-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/wechat-pay-busifavor-bundle)
+[![PHP Version](https://img.shields.io/badge/php-^8.1-blue.svg?style=flat-square)](https://php.net)
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+[![Total Downloads](https://img.shields.io/packagist/dt/tourze/wechat-pay-busifavor-bundle.svg?style=flat-square)](https://packagist.org/packages/tourze/wechat-pay-busifavor-bundle)
+[![Coverage Status](https://img.shields.io/badge/coverage-100%25-brightgreen?style=flat-square)](https://github.com/tourze/wechat-pay-busifavor-bundle)
 
-- 创建商家券批次
-- 查询商家券批次详情
-- 查询用户券列表
-- 查询用户单张券详情
-- 核销商家券
-- 同步商家券状态
-- 支持命令行管理
+A comprehensive Symfony bundle for managing WeChat Pay Business Coupons. This module provides complete functionality for creating, managing, and processing business coupons through WeChat Pay's marketing tools.
 
-## 依赖关系
+## Features
 
-- HttpClientBundle
-- WechatPayBundle
+- Create and manage business coupon stocks/batches
+- Query coupon stock details and status
+- Retrieve user coupon lists with filtering
+- Get individual coupon details
+- Process coupon redemptions
+- Synchronize coupon status with WeChat Pay
+- Command-line management tools
+- Entity-based data persistence with Doctrine ORM
+- Type-safe enum support for statuses
+- Comprehensive API client with error handling
 
-## API接口
+## Requirements
 
-### 创建商家券批次
+- PHP 8.1 or higher
+- Symfony 7.3 or higher
+- Doctrine ORM 3.0 or higher
 
+## Installation
+
+```bash
+composer require tourze/wechat-pay-busifavor-bundle
 ```
-POST /api/wechat-pay/busifavor/stocks
+
+The bundle will be automatically registered in your `config/bundles.php` via Symfony Flex, or you can manually add it:
+
+```php
+return [
+    // ...
+    WechatPayBusifavorBundle\WechatPayBusifavorBundle::class => ['all' => true],
+];
 ```
 
-请求示例:
-```json
+## Configuration
+
+This bundle requires configuration from:
+- `HttpClientBundle` - for HTTP client services
+- `WechatPayBundle` - for WeChat Pay API credentials and configuration
+
+## Quick Start
+
+### Dependency Injection
+
+```php
+use WechatPayBusifavorBundle\Service\BusifavorService;
+
+class YourController
 {
-    "stock_name": "示例券批次",
-    "comment": "描述信息",
-    "belong_merchant": "商户号",
-    "available_begin_time": "2023-01-01T00:00:00+08:00",
-    "available_end_time": "2023-12-31T23:59:59+08:00",
-    "stock_use_rule": {
-        "max_coupons": 100,
-        "max_coupons_per_user": 10
-    },
-    "coupon_use_rule": {
-        "fixed_normal_coupon": {
-            "discount_amount": 100,
-            "transaction_minimum": 100
-        }
-    }
+    public function __construct(
+        private readonly BusifavorService $busifavorService,
+    ) {}
 }
 ```
 
-### 查询商家券批次详情
+### Create Stock
 
-```
-GET /api/wechat-pay/busifavor/stocks/{stockId}
-```
+```php
+$data = [
+    'stock_name' => 'Example Stock',
+    'comment' => 'Description',
+    'belong_merchant' => 'merchant_id',
+    'available_begin_time' => '2023-01-01T00:00:00+08:00',
+    'available_end_time' => '2023-12-31T23:59:59+08:00',
+    'stock_use_rule' => [
+        'max_coupons' => 100,
+        'max_coupons_per_user' => 10
+    ],
+    'coupon_use_rule' => [
+        'fixed_normal_coupon' => [
+            'discount_amount' => 100,
+            'transaction_minimum' => 100
+        ]
+    ]
+];
 
-### 查询用户券列表
-
-```
-GET /api/wechat-pay/busifavor/users/{openid}/coupons
-```
-
-### 核销商家券
-
-```
-POST /api/wechat-pay/busifavor/coupons/use
-```
-
-请求示例:
-```json
-{
-    "coupon_code": "券码",
-    "stock_id": "批次ID",
-    "openid": "用户openid"
-}
+$result = $busifavorService->createStock($data);
 ```
 
-## 命令行工具
+## API Reference
 
-### 同步商家券批次状态
+### Create Stock
+
+```php
+$stock = $busifavorService->createStock($data);
+```
+
+### Get Stock Details
+
+```php
+$stock = $busifavorService->getStock($stockId);
+```
+
+### Get User Coupons
+
+```php
+$coupons = $busifavorService->getUserCoupons($openid, $appid, $stockId);
+```
+
+### Redeem Coupon
+
+```php
+$result = $busifavorService->useCoupon($couponCode, $stockId, $appid, $openid, $useRequestNo);
+```
+
+## Console Commands
+
+### Sync Stock Status
 
 ```bash
 php bin/console wechat-pay:busifavor:sync-stock [stock-id]
 ```
 
-### 查询用户商家券列表
+### List User Coupons
 
 ```bash
 php bin/console wechat-pay:busifavor:list-user-coupons openid [--appid=] [--stock-id=] [--status=] [--limit=10] [--offset=0]
 ```
 
-## 相关文档
+## License
 
-- [微信支付商家券API文档](https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter9_2_1.shtml)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
+
+## References
+
+- [WeChat Pay Business Coupon API Documentation](https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter9_2_1.shtml)

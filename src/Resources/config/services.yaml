@@ -6,6 +6,10 @@ services:
 
   WechatPayBusifavorBundle\Command\:
     resource: '../../Command/'
+  WechatPayBusifavorBundle\Client\:
+    resource: '../../Client/'
+  WechatPayBusifavorBundle\Controller\:
+    resource: '../../Controller/'
   WechatPayBusifavorBundle\EventSubscriber\:
     resource: '../../EventSubscriber/'
   WechatPayBusifavorBundle\Procedure\:
@@ -15,23 +19,5 @@ services:
   WechatPayBusifavorBundle\Service\:
     resource: '../../Service/'
 
-  # Explicit service definitions for testing
-  wechat_pay_busifavor.service.busifavor:
-    class: WechatPayBusifavorBundle\Service\BusifavorService
-    public: true
-
-  wechat_pay_busifavor.repository.stock:
-    class: WechatPayBusifavorBundle\Repository\StockRepository
-    public: true
-
-  wechat_pay_busifavor.repository.coupon:
-    class: WechatPayBusifavorBundle\Repository\CouponRepository
-    public: true
-
-  wechat_pay_busifavor.command.list_user_coupons:
-    class: WechatPayBusifavorBundle\Command\ListUserCouponsCommand
-    public: true
-
-  wechat_pay_busifavor.command.sync_stock:
-    class: WechatPayBusifavorBundle\Command\SyncStockCommand
-    public: true
+  # Explicitly register AdminMenu service
+  WechatPayBusifavorBundle\Service\AdminMenu: ~

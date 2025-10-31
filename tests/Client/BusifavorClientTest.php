@@ -1,18 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Client;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 use WechatPayBusifavorBundle\Client\BusifavorClient;
 
-class BusifavorClientTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(BusifavorClient::class)]
+#[RunTestsInSeparateProcesses]
+final class BusifavorClientTest extends AbstractIntegrationTestCase
 {
-    /**
-     * 这个测试类仅测试 BusifavorClient 的公共接口，而不是内部实现
-     * 实际测试依赖于继承的 ApiClient 功能，我们通过模拟响应来测试
-     */
-    public function testClassExists(): void
+    protected function onSetUp(): void
     {
-        $this->assertTrue(class_exists(BusifavorClient::class));
     }
-} 
+
+    public function testClientCanBeRetrievedFromContainer(): void
+    {
+        $client = self::getService(BusifavorClient::class);
+        $this->assertInstanceOf(BusifavorClient::class, $client);
+    }
+}

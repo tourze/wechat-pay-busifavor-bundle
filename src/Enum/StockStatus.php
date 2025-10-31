@@ -2,6 +2,7 @@
 
 namespace WechatPayBusifavorBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -13,10 +14,10 @@ use Tourze\EnumExtra\SelectTrait;
  *
  * 参考文档: https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter9_2_2.shtml
  */
-enum StockStatus: string implements Labelable, Itemable, Selectable
+enum StockStatus: string implements Labelable, Itemable, Selectable, BadgeInterface
 {
-    use ItemTrait;
     use SelectTrait;
+    use ItemTrait;
 
     case UNAUDIT = 'UNAUDIT';
     case CHECKING = 'CHECKING';
@@ -41,18 +42,17 @@ enum StockStatus: string implements Labelable, Itemable, Selectable
         };
     }
 
-    /**
-     * 获取所有状态
-     *
-     * @return array<string, string> 状态值 => 状态标签
-     */
-    public static function getOptions(): array
+    public function getBadge(): string
     {
-        $options = [];
-        foreach (self::cases() as $status) {
-            $options[$status->value] = $status->getLabel();
-        }
-
-        return $options;
+        return match ($this) {
+            self::UNAUDIT => self::SECONDARY,
+            self::CHECKING => self::INFO,
+            self::AUDIT_REJECT => self::DANGER,
+            self::AUDIT_SUCCESS => self::SUCCESS,
+            self::ONGOING => self::PRIMARY,
+            self::PAUSED => self::WARNING,
+            self::STOPPED => self::DARK,
+            self::EXPIRED => self::LIGHT,
+        };
     }
 }

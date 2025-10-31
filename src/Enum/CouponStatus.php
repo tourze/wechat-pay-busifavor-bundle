@@ -2,6 +2,7 @@
 
 namespace WechatPayBusifavorBundle\Enum;
 
+use Tourze\EnumExtra\BadgeInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -13,10 +14,10 @@ use Tourze\EnumExtra\SelectTrait;
  *
  * 参考文档: https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter9_2_2.shtml
  */
-enum CouponStatus: string implements Labelable, Itemable, Selectable
+enum CouponStatus: string implements Labelable, Itemable, Selectable, BadgeInterface
 {
-    use ItemTrait;
     use SelectTrait;
+    use ItemTrait;
 
     case SENDED = 'SENDED';
     case USED = 'USED';
@@ -33,18 +34,13 @@ enum CouponStatus: string implements Labelable, Itemable, Selectable
         };
     }
 
-    /**
-     * 获取所有状态
-     *
-     * @return array<string, string> 状态值 => 状态标签
-     */
-    public static function getOptions(): array
+    public function getBadge(): string
     {
-        $options = [];
-        foreach (self::cases() as $status) {
-            $options[$status->value] = $status->getLabel();
-        }
-
-        return $options;
+        return match ($this) {
+            self::SENDED => self::SUCCESS,
+            self::USED => self::PRIMARY,
+            self::EXPIRED => self::WARNING,
+            self::DEACTIVATED => self::DANGER,
+        };
     }
 }

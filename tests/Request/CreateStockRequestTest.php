@@ -1,11 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\Request;
 
-use PHPUnit\Framework\TestCase;
+use HttpClientBundle\Tests\Request\RequestTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use WechatPayBusifavorBundle\Request\CreateStockRequest;
 
-class CreateStockRequestTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(CreateStockRequest::class)]
+final class CreateStockRequestTest extends RequestTestCase
 {
     public function testGetRequestPath(): void
     {

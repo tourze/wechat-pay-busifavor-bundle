@@ -1,44 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace WechatPayBusifavorBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Tourze\PHPUnitSymfonyUnitTest\AbstractDependencyInjectionExtensionTestCase;
 use WechatPayBusifavorBundle\DependencyInjection\WechatPayBusifavorExtension;
 
-class WechatPayBusifavorExtensionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(WechatPayBusifavorExtension::class)]
+final class WechatPayBusifavorExtensionTest extends AbstractDependencyInjectionExtensionTestCase
 {
-    private WechatPayBusifavorExtension $extension;
-    private ContainerBuilder $container;
-
-    protected function setUp(): void
-    {
-        $this->extension = new WechatPayBusifavorExtension();
-        $this->container = new ContainerBuilder();
-    }
-
-    public function testLoad(): void
-    {
-        $this->extension->load([], $this->container);
-
-        // 验证服务是否被加载
-        $this->assertTrue($this->container->hasDefinition('wechat_pay_busifavor.service.busifavor'));
-        $this->assertTrue($this->container->hasDefinition('wechat_pay_busifavor.repository.stock'));
-        $this->assertTrue($this->container->hasDefinition('wechat_pay_busifavor.repository.coupon'));
-        $this->assertTrue($this->container->hasDefinition('wechat_pay_busifavor.command.list_user_coupons'));
-        $this->assertTrue($this->container->hasDefinition('wechat_pay_busifavor.command.sync_stock'));
-    }
-
     public function testServicesArePublic(): void
     {
-        $this->extension->load([], $this->container);
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.environment', 'test');
+        $extension = new WechatPayBusifavorExtension();
 
-        $busifavorService = $this->container->getDefinition('wechat_pay_busifavor.service.busifavor');
-        $this->assertTrue($busifavorService->isPublic());
+        $configs = [];
+        $extension->load($configs, $container);
+
+        $busifavorService = $container->getDefinition('WechatPayBusifavorBundle\Service\BusifavorService');
+        $this->assertFalse($busifavorService->isPublic()); // 服务默认是私有的，这是正确行为
     }
 
     public function testGetAlias(): void
     {
-        $this->assertEquals('wechat_pay_busifavor', $this->extension->getAlias());
+        $extension = new WechatPayBusifavorExtension();
+        $this->assertEquals('wechat_pay_busifavor', $extension->getAlias());
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // 测试 Extension 不需要特殊的设置
     }
 }

@@ -6,17 +6,11 @@ use HttpClientBundle\Request\RequestInterface;
 
 class GetCouponRequest implements RequestInterface
 {
-    private string $couponCode;
-
-    private string $openid;
-
-    private string $appid;
-
-    public function __construct(string $couponCode, string $openid, string $appid)
-    {
-        $this->couponCode = $couponCode;
-        $this->openid = $openid;
-        $this->appid = $appid;
+    public function __construct(
+        private readonly string $couponCode,
+        private readonly string $openid,
+        private readonly string $appid,
+    ) {
     }
 
     public function getRequestPath(): string
