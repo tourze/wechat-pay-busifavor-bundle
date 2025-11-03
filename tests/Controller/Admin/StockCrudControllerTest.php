@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Tourze\PHPUnitSymfonyWebTest\AbstractEasyAdminControllerTestCase;
-use WechatPayBusifavorBundle\Controller\Admin\DashboardController;
 use WechatPayBusifavorBundle\Controller\Admin\StockCrudController;
 use WechatPayBusifavorBundle\Entity\Stock;
 
@@ -29,15 +28,7 @@ final class StockCrudControllerTest extends AbstractEasyAdminControllerTestCase
         return self::getService(StockCrudController::class);
     }
 
-    /**
-     * 返回Dashboard控制器的FQCN
-     * 覆盖基类方法以指定特定的Dashboard
-     */
-    protected function getDashboardFqcn(): string
-    {
-        return DashboardController::class;
-    }
-
+  
     /**
      * @return \Generator<string, array{string}>
      */
